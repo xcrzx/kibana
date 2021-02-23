@@ -80,17 +80,6 @@ export PATH="$PATH:$YARN_GLOBAL_BIN"
 
 #################
 
-echo "### Bootstrap"
+buildkite-agent artifact upload "src/plugins/index_pattern_management/public/assets/icons/go.png"
 
-echo "##### yarn install and kbn bootstrap"
-yarn kbn bootstrap
-
-echo "##### build kbn-pm"
-yarn kbn run build -i @kbn/pm
-
-echo "##### build plugin list docs"
-node scripts/build_plugin_list_docs
-
-#######################
-
-node scripts/jest --ci --verbose
+node .ci/buildkite/test.js
