@@ -81,5 +81,6 @@ export PATH="$PATH:$YARN_GLOBAL_BIN"
 #################
 
 buildkite-agent artifact upload "src/plugins/index_pattern_management/public/assets/icons/go.png"
+buildkite-agent artifact upload ".ci/buildkite/asset.svg"
 
 node .ci/buildkite/test.js
