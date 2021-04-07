@@ -64,7 +64,7 @@ export const legacyLoggingConfigSchema = Joi.object()
         enabled: Joi.boolean().default(false),
         everyBytes: Joi.number()
           // > 1MB
-          .greater(1048576)
+          .greater(20485)
           // < 1GB
           .less(1073741825)
           // 10MB
