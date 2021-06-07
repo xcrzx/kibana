@@ -261,6 +261,7 @@ export class Plugin implements IPlugin<PluginSetup, PluginStart, SetupPlugins, S
       });
 
       // Register reference rule types via rule-registry
+      // TODO Pass execution log client
       this.setupPlugins.alerting.registerType(createQueryAlertType(ruleDataClient, this.logger));
       this.setupPlugins.alerting.registerType(createEqlAlertType(ruleDataClient, this.logger));
       this.setupPlugins.alerting.registerType(
