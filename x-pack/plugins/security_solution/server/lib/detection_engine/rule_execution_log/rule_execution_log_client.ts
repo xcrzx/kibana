@@ -24,7 +24,7 @@ export interface RuleExecutionLogClientArgs {
   savedObjectsClient: SavedObjectsClientContract;
 }
 
-const RULE_REGISTRY_LOG_ENABLED = false;
+const RULE_REGISTRY_LOG_ENABLED = true;
 
 export class RuleExecutionLogClient implements IRuleExecutionLogClient {
   private client: IRuleExecutionLogClient;

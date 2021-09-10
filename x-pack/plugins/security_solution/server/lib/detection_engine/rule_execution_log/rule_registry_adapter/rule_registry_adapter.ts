@@ -101,6 +101,34 @@ export class RuleRegistryAdapter implements IRuleExecutionLogClient {
   }
 
   public async logStatusChange(args: LogStatusChangeArgs) {
+    function randomDate(start: Date, end: Date) {
+      return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+    }
+
+    await this.ruleRegistryClient.logExecutionMetric({
+      ruleId: args.ruleId,
+      metric: ExecutionMetric.searchDurationMax,
+      value: Math.random() * 1000,
+      spaceId: args.spaceId,
+    });
+    await this.ruleRegistryClient.logExecutionMetric({
+      ruleId: args.ruleId,
+      metric: ExecutionMetric.indexingDurationMax,
+      value: Math.random() * 1000,
+      spaceId: args.spaceId,
+    });
+    await this.ruleRegistryClient.logExecutionMetric({
+      ruleId: args.ruleId,
+      metric: ExecutionMetric.indexingLookback,
+      value: randomDate(new Date(2012, 0, 1), new Date()),
+      spaceId: args.spaceId,
+    });
+    await this.ruleRegistryClient.logExecutionMetric({
+      ruleId: args.ruleId,
+      metric: ExecutionMetric.executionGap,
+      value: Math.random() * 1000,
+      spaceId: args.spaceId,
+    });
     return this.ruleRegistryClient.logStatusChange(args);
   }
 }

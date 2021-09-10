@@ -19,6 +19,8 @@ import { RulesClient } from '../../../../../alerting/server';
 import { RuleStatusResponse, IRuleStatusSOAttributes } from '../rules/types';
 
 import { RuleParams } from '../schemas/rule_schemas';
+import { SearchSort } from '@elastic/elasticsearch/api/types';
+import { ExecutionMetric } from '../rule_execution_log/types';
 
 export interface OutputError {
   message: string;
@@ -330,4 +332,15 @@ export const getFailingRules = async (
     }
     throw new Error(`Failed to get executionStatus with RulesClient: ${exc.message}`);
   }
+};
+
+export const sortNewestFirst: SearchSort = { '@timestamp': 'desc' };
+
+export const TEST_INDEX = '.internal.alerts-security.events-default-sorted';
+
+// export const TEST_INDEX = '.internal.alerts-security.events-default-000001';
+
+export const getRndMetric = (): ExecutionMetric => {
+  const keys = Object.keys(ExecutionMetric) as Array<keyof typeof ExecutionMetric>;
+  return ExecutionMetric[keys[(keys.length * Math.random()) << 0]];
 };

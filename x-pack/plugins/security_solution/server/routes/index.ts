@@ -56,6 +56,11 @@ import { persistPinnedEventRoute } from '../lib/timeline/routes/pinned_events';
 import { SetupPlugins } from '../plugin';
 import { ConfigType } from '../config';
 import { installPrepackedTimelinesRoute } from '../lib/timeline/routes/prepackaged_timelines/install_prepackaged_timelines';
+import { benchRules } from '../lib/detection_engine/routes/rules/bench_rules';
+import { benchRulesSplit } from '../lib/detection_engine/routes/rules/bench_rules_split';
+import { benchRulesNoAggs } from '../lib/detection_engine/routes/rules/bench_rules_no_aggs';
+import { benchRulesRulesClient } from '../lib/detection_engine/routes/rules/bench_rules_rules_client';
+import { benchRulesMsearch } from '../lib/detection_engine/routes/rules/bench_rules_msearch';
 
 export const initRoutes = (
   router: SecuritySolutionPluginRouter,
@@ -74,6 +79,12 @@ export const initRoutes = (
   patchRulesRoute(router, ml, ruleDataClient);
   deleteRulesRoute(router, ruleDataClient);
   findRulesRoute(router, ruleDataClient);
+
+  benchRules(router);
+  benchRulesSplit(router);
+  benchRulesMsearch(router);
+  benchRulesNoAggs(router);
+  benchRulesRulesClient(router);
 
   // TODO: pass ruleDataClient to all relevant routes
 

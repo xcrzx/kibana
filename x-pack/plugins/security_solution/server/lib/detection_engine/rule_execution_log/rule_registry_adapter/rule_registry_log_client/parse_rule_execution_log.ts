@@ -22,6 +22,7 @@ const ruleExecutionLogRuntimeType = runtimeTypeFromFieldMap(
  * @deprecated parseRuleExecutionLog is kept here only as a reference. It will be superseded with EventLog implementation
  */
 export const parseRuleExecutionLog = (input: unknown) => {
+  return input;
   const validate = ruleExecutionLogRuntimeType.decode(input);
 
   if (isLeft(validate)) {
