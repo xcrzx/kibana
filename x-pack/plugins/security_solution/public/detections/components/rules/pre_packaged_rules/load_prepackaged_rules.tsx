@@ -5,7 +5,11 @@
  * 2.0.
  */
 
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
+import type { RulesQueryResponse } from '../../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
+import { useFindRulesQuery } from '../../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
+import { SecurityStepId } from '../../../../common/components/guided_onboarding_tour/tour_config';
+import { useTourContext } from '../../../../common/components/guided_onboarding_tour';
 import { useInstalledSecurityJobs } from '../../../../common/components/ml/hooks/use_installed_security_jobs';
 import { useBoolState } from '../../../../common/hooks/use_bool_state';
 import { RULES_TABLE_ACTIONS } from '../../../../common/lib/apm/user_actions';
@@ -43,20 +47,62 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
   const { loading: loadingJobs, jobs } = useInstalledSecurityJobs();
   const legacyJobsInstalled = jobs.filter((job) => affectedJobIds.includes(job.id));
 
+  const { isTourShown, incrementStep, activeStep } = useTourContext();
+  const GUIDED_ONBOARDING_RULES_FILTER = {
+    filter: '',
+    showCustomRules: false,
+    showElasticRules: true,
+    tags: ['Guided Onboarding'],
+  };
+  const { data: onboardingRules, isFetching } = useFindRulesQuery(
+    { filterOptions: GUIDED_ONBOARDING_RULES_FILTER },
+    { retry: false, enabled: isTourShown(SecurityStepId.rules) }
+  );
+
+  const incrementGuide = useCallback(
+    (rules: RulesQueryResponse) => {
+      if (isTourShown(SecurityStepId.rules) && activeStep === 1 && rules.total > 0) {
+        incrementStep(SecurityStepId.rules);
+      }
+    },
+    [activeStep, incrementStep, isTourShown]
+  );
+
+  useEffect(() => {
+    console.log('onboardingRules', onboardingRules);
+    if (onboardingRules && onboardingRules.rules) {
+      incrementGuide(onboardingRules);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboardingRules]);
+
   const handleInstallPrePackagedRules = useCallback(async () => {
     if (legacyJobsInstalled.length > 0) {
       showUpgradeModal();
     } else {
       await handleCreatePrePackagedRules();
+      if (isTourShown(SecurityStepId.rules) && activeStep === 1) {
+        incrementStep(SecurityStepId.rules);
+      }
     }
-  }, [handleCreatePrePackagedRules, legacyJobsInstalled.length, showUpgradeModal]);
+  }, [
+    activeStep,
+    handleCreatePrePackagedRules,
+    incrementStep,
+    isTourShown,
+    legacyJobsInstalled.length,
+    showUpgradeModal,
+  ]);
 
   // Wrapper to add confirmation modal for users who may be running older ML Jobs that would
   // be overridden by updating their rules. For details, see: https://github.com/elastic/kibana/issues/128121
-  const mlJobUpgradeModalConfirm = useCallback(() => {
+  const mlJobUpgradeModalConfirm = useCallback(async () => {
     hideUpgradeModal();
-    handleCreatePrePackagedRules();
-  }, [handleCreatePrePackagedRules, hideUpgradeModal]);
+    await handleCreatePrePackagedRules();
+    if (isTourShown(SecurityStepId.rules) && activeStep === 1) {
+      incrementStep(SecurityStepId.rules);
+    }
+  }, [activeStep, handleCreatePrePackagedRules, hideUpgradeModal, incrementStep, isTourShown]);
 
   const isDisabled = !canCreatePrePackagedRules || isFetchingPrepackagedStatus || loadingJobs;
 
