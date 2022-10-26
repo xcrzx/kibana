@@ -56,9 +56,9 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
 
   // Wrapper to add confirmation modal for users who may be running older ML Jobs that would
   // be overridden by updating their rules. For details, see: https://github.com/elastic/kibana/issues/128121
-  const mlJobUpgradeModalConfirm = useCallback(async () => {
+  const mlJobUpgradeModalConfirm = useCallback(() => {
     hideUpgradeModal();
-    await handleCreatePrePackagedRules();
+    handleCreatePrePackagedRules();
   }, [handleCreatePrePackagedRules, hideUpgradeModal]);
 
   const isDisabled = !canCreatePrePackagedRules || isFetchingPrepackagedStatus || loadingJobs;
