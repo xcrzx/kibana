@@ -54,7 +54,7 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
     showElasticRules: true,
     tags: ['Guided Onboarding'],
   };
-  const { data: onboardingRules, isFetching } = useFindRulesQuery(
+  const { data: onboardingRules } = useFindRulesQuery(
     { filterOptions: GUIDED_ONBOARDING_RULES_FILTER },
     { retry: false, enabled: isTourShown(SecurityStepId.rules) }
   );
@@ -69,7 +69,6 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
   );
 
   useEffect(() => {
-    console.log('onboardingRules', onboardingRules);
     if (onboardingRules && onboardingRules.rules) {
       incrementGuide(onboardingRules);
     }
