@@ -8,7 +8,6 @@
 import type { EuiTourStepProps } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import type { ElementTarget } from '@elastic/eui/src/services/findElement';
-import * as translations from './translations';
 
 export const enum SecurityStepId {
   rules = 'rules',
@@ -129,8 +128,18 @@ const alertsCasesConfig: StepConfig[] = [
 const rulesConfig: StepConfig[] = [
   {
     ...defaultConfig,
-    title: translations.INSTALL_PREBUILT_RULES_TITLE,
-    content: translations.INSTALL_PREBUILT_RULES_CONTENT,
+    title: i18n.translate(
+      'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.installPrebuiltRules.title',
+      {
+        defaultMessage: 'Load the Elastic prebuilt rules',
+      }
+    ),
+    content: i18n.translate(
+      'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.installPrebuiltRules.content',
+      {
+        defaultMessage: 'To get started you need to load the Elastic prebuilt rules.',
+      }
+    ),
     step: 1,
     anchorPosition: 'downCenter',
     hideNextButton: true,
@@ -138,8 +147,18 @@ const rulesConfig: StepConfig[] = [
   },
   {
     ...defaultConfig,
-    title: translations.SEARCH_FIRST_RULE_TITLE,
-    content: translations.SEARCH_FIRST_RULE_CONTENT,
+    title: i18n.translate(
+      'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.searchFirstRule.title',
+      {
+        defaultMessage: 'Search for Elastic Defend rules',
+      }
+    ),
+    content: i18n.translate(
+      'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.searchFirstRule.content',
+      {
+        defaultMessage: 'Find the rules you want and enable them.',
+      }
+    ),
     step: 2,
     anchorPosition: 'upCenter',
     hideNextButton: true,

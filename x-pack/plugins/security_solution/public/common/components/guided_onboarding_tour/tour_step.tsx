@@ -29,7 +29,6 @@ export const SecurityTourStep = ({ children, step, stepId }: SecurityTourStep) =
   // If we mount this step, we know we need to render it
   // we are also managing the context on the siem end in the background
   const overrideContext = step === 5 && stepId === SecurityStepId.alertsCases;
-  console.log('TOUR STEP?', { stepId, activeStep, step, tourStep });
   if (tourStep == null || ((step !== activeStep || !isTourShown(stepId)) && !overrideContext)) {
     return children ? children : null;
   }

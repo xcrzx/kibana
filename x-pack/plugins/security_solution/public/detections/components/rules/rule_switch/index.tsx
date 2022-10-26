@@ -8,12 +8,8 @@
 import type { EuiSwitchEvent } from '@elastic/eui';
 import { EuiFlexGroup, EuiFlexItem, EuiLoadingSpinner, EuiSwitch } from '@elastic/eui';
 import { noop } from 'lodash';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import styled from 'styled-components';
-import type { RulesQueryResponse } from '../../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
-import { useFindRulesQuery } from '../../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
-import { useTourContext } from '../../../../common/components/guided_onboarding_tour';
-import { SecurityStepId } from '../../../../common/components/guided_onboarding_tour/tour_config';
 import { BulkAction } from '../../../../../common/detection_engine/rule_management/api/rules/bulk_actions/request_schema';
 import { SINGLE_RULE_ACTIONS } from '../../../../common/lib/apm/user_actions';
 import { useStartTransaction } from '../../../../common/lib/apm/use_start_transaction';
@@ -51,33 +47,6 @@ export const RuleSwitchComponent = ({
   const rulesTableContext = useRulesTableContextOptional();
   const { startTransaction } = useStartTransaction();
   const { executeBulkAction } = useExecuteBulkAction();
-  const { isTourShown, endTourStep, activeStep } = useTourContext();
-  const GUIDED_ONBOARDING_RULES_FILTER = {
-    filter: '',
-    showCustomRules: false,
-    showElasticRules: true,
-    tags: ['Guided Onboarding'],
-  };
-  const { data: onboardingRules } = useFindRulesQuery(
-    { filterOptions: GUIDED_ONBOARDING_RULES_FILTER },
-    { retry: false, enabled: isTourShown(SecurityStepId.rules) }
-  );
-
-  const endRulesTour = useCallback(
-    (rules: RulesQueryResponse) => {
-      if (isTourShown(SecurityStepId.rules) && activeStep === 2) {
-        endTourStep(SecurityStepId.rules);
-      }
-    },
-    [activeStep, endTourStep, isTourShown]
-  );
-
-  useEffect(() => {
-    if (onboardingRules && onboardingRules.rules.some((rule) => rule.enabled)) {
-      endRulesTour(onboardingRules);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onboardingRules]);
 
   const onRuleStateChange = useCallback(
     async (event: EuiSwitchEvent) => {
