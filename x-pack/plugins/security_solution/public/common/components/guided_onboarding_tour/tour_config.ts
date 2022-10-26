@@ -130,15 +130,11 @@ const rulesConfig: StepConfig[] = [
     ...defaultConfig,
     title: i18n.translate(
       'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.installPrebuiltRules.title',
-      {
-        defaultMessage: 'Load the Elastic prebuilt rules',
-      }
+      { defaultMessage: 'Load the Elastic prebuilt rules' }
     ),
     content: i18n.translate(
       'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.installPrebuiltRules.content',
-      {
-        defaultMessage: 'To get started you need to load the Elastic prebuilt rules.',
-      }
+      { defaultMessage: 'To get started you need to load the Elastic prebuilt rules.' }
     ),
     step: 1,
     anchorPosition: 'downCenter',
@@ -149,15 +145,11 @@ const rulesConfig: StepConfig[] = [
     ...defaultConfig,
     title: i18n.translate(
       'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.searchFirstRule.title',
-      {
-        defaultMessage: 'Search for Elastic Defend rules',
-      }
+      { defaultMessage: 'Search for Elastic Defend rules' }
     ),
     content: i18n.translate(
       'xpack.securitySolution.detectionEngine.rules.guidedOnboarding.searchFirstRule.content',
-      {
-        defaultMessage: 'Find the rules you want and enable them.',
-      }
+      { defaultMessage: 'Find the rules you want and enable them.' }
     ),
     step: 2,
     anchorPosition: 'upCenter',
