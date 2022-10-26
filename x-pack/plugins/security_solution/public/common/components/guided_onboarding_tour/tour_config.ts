@@ -8,6 +8,7 @@
 import type { EuiTourStepProps } from '@elastic/eui';
 import { i18n } from '@kbn/i18n';
 import type { ElementTarget } from '@elastic/eui/src/services/findElement';
+import * as translations from './translations';
 
 export const enum SecurityStepId {
   rules = 'rules',
@@ -125,6 +126,29 @@ const alertsCasesConfig: StepConfig[] = [
   },
 ];
 
+const rulesConfig: StepConfig[] = [
+  {
+    ...defaultConfig,
+    title: translations.INSTALL_PREBUILT_RULES_TITLE,
+    content: translations.INSTALL_PREBUILT_RULES_CONTENT,
+    step: 1,
+    anchor: getTourAnchor(1, SecurityStepId.rules),
+    anchorPosition: 'downCenter',
+    hideNextButton: true,
+    dataTestSubj: getTourAnchor(1, SecurityStepId.rules),
+  },
+  {
+    ...defaultConfig,
+    title: translations.SEARCH_FIRST_RULE_TITLE,
+    content: translations.SEARCH_FIRST_RULE_CONTENT,
+    step: 2,
+    anchor: getTourAnchor(2, SecurityStepId.rules),
+    anchorPosition: 'upCenter',
+    hideNextButton: true,
+    dataTestSubj: getTourAnchor(2, SecurityStepId.rules),
+  },
+];
+
 interface SecurityTourConfig {
   [SecurityStepId.rules]: StepConfig[];
   [SecurityStepId.alertsCases]: StepConfig[];
@@ -134,6 +158,6 @@ export const securityTourConfig: SecurityTourConfig = {
   /**
    * D&R team implement your tour config here
    */
-  [SecurityStepId.rules]: [],
+  [SecurityStepId.rules]: rulesConfig,
   [SecurityStepId.alertsCases]: alertsCasesConfig,
 };

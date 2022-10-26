@@ -7,6 +7,8 @@
 
 import { EuiButton } from '@elastic/eui';
 import React from 'react';
+import { SecurityStepId } from '../../../../common/components/guided_onboarding_tour/tour_config';
+import { GuidedOnboardingTourStep } from '../../../../common/components/guided_onboarding_tour/tour_step';
 import { usePrePackagedRulesInstallationStatus } from '../../../../detection_engine/rule_management/logic/use_pre_packaged_rules_installation_status';
 import { usePrePackagedRulesStatus } from '../../../../detection_engine/rule_management/logic/use_pre_packaged_rules_status';
 import { usePrePackagedTimelinesInstallationStatus } from '../../../../detection_engine/rule_management/logic/use_pre_packaged_timelines_installation_status';
@@ -63,16 +65,18 @@ export const LoadPrePackagedRulesButton = ({
 
   if (showInstallButton) {
     return (
-      <EuiButton
-        fill={fill}
-        iconType="indexOpen"
-        isLoading={isLoading}
-        isDisabled={isDisabled}
-        onClick={onClick}
-        data-test-subj={dataTestSubj}
-      >
-        {getLoadRulesOrTimelinesButtonTitle(prePackagedAssetsStatus, prePackagedTimelineStatus)}
-      </EuiButton>
+      <GuidedOnboardingTourStep step={1} stepId={SecurityStepId.rules}>
+        <EuiButton
+          fill={fill}
+          iconType="indexOpen"
+          isLoading={isLoading}
+          isDisabled={isDisabled}
+          onClick={onClick}
+          data-test-subj={dataTestSubj}
+        >
+          {getLoadRulesOrTimelinesButtonTitle(prePackagedAssetsStatus, prePackagedTimelineStatus)}
+        </EuiButton>
+      </GuidedOnboardingTourStep>
     );
   }
 
@@ -82,19 +86,21 @@ export const LoadPrePackagedRulesButton = ({
 
   if (showUpdateButton) {
     return (
-      <EuiButton
-        fill={fill}
-        iconType="plusInCircle"
-        isLoading={isLoading}
-        isDisabled={isDisabled}
-        onClick={onClick}
-        data-test-subj={dataTestSubj}
-      >
-        {getMissingRulesOrTimelinesButtonTitle(
-          prePackagedRulesStatus?.rules_not_installed ?? 0,
-          prePackagedRulesStatus?.timelines_not_installed ?? 0
-        )}
-      </EuiButton>
+      <GuidedOnboardingTourStep step={1} stepId={SecurityStepId.rules}>
+        <EuiButton
+          fill={fill}
+          iconType="plusInCircle"
+          isLoading={isLoading}
+          isDisabled={isDisabled}
+          onClick={onClick}
+          data-test-subj={dataTestSubj}
+        >
+          {getMissingRulesOrTimelinesButtonTitle(
+            prePackagedRulesStatus?.rules_not_installed ?? 0,
+            prePackagedRulesStatus?.timelines_not_installed ?? 0
+          )}
+        </EuiButton>
+      </GuidedOnboardingTourStep>
     );
   }
 
