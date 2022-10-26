@@ -7,7 +7,6 @@
 
 import { useCallback, useEffect } from 'react';
 import { useTourContext } from './tour';
-import type { RulesQueryResponse } from '../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
 import { useFindRulesQuery } from '../../../detection_engine/rule_management/api/hooks/use_find_rules_query';
 import { SecurityStepId } from './tour_config';
 const GUIDED_ONBOARDING_RULES_FILTER = {
@@ -24,35 +23,28 @@ export const useRulesTour = () => {
   );
 
   const endRulesTour = useCallback(() => {
-    if (isTourShown(SecurityStepId.rules) && activeStep === 2) {
-      endTourStep(SecurityStepId.rules);
-    }
-  }, [activeStep, endTourStep, isTourShown]);
-
-  const incrementGuide = useCallback(
-    (rules: RulesQueryResponse) => {
-      if (isTourShown(SecurityStepId.rules) && activeStep === 1 && rules.total > 0) {
-        incrementStep(SecurityStepId.rules);
-      }
-    },
-    [activeStep, incrementStep, isTourShown]
-  );
-
-  useEffect(() => {
-    if (onboardingRules) {
-      if (onboardingRules.rules && !onboardingRules.rules.some((rule) => rule.enabled)) {
-        return incrementGuide(onboardingRules);
-      }
-      return endRulesTour();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onboardingRules]);
+    endTourStep(SecurityStepId.rules);
+  }, [endTourStep]);
 
   const incrementRulesStep = useCallback(() => {
     if (isTourShown(SecurityStepId.rules) && activeStep === 1) {
       incrementStep(SecurityStepId.rules);
     }
   }, [activeStep, incrementStep, isTourShown]);
+
+  useEffect(() => {
+    if (onboardingRules) {
+      if (onboardingRules.rules && onboardingRules.rules.length > 0) {
+        // There are onboarding rules now, advance to step 2 if on step 1
+        incrementRulesStep();
+      }
+      if (onboardingRules.rules.some((rule) => rule.enabled)) {
+        // The onboarding rule is enabled, end the tour
+        endRulesTour();
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [onboardingRules]);
 
   return { incrementRulesStep };
 };
