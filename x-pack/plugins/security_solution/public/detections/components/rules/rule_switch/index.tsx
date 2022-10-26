@@ -54,7 +54,6 @@ export const RuleSwitchComponent = ({
       startTransaction({
         name: enabled ? SINGLE_RULE_ACTIONS.DISABLE : SINGLE_RULE_ACTIONS.ENABLE,
       });
-
       const bulkActionResponse = await executeBulkAction({
         setLoadingRules: rulesTableContext?.actions.setLoadingRules,
         onSuccess: rulesTableContext ? undefined : noop,
