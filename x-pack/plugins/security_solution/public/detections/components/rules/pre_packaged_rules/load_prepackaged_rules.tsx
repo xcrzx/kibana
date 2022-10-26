@@ -44,29 +44,22 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
   const { loading: loadingJobs, jobs } = useInstalledSecurityJobs();
   const legacyJobsInstalled = jobs.filter((job) => affectedJobIds.includes(job.id));
 
-  const { incrementRulesStep } = useRulesTour();
+  useRulesTour();
 
   const handleInstallPrePackagedRules = useCallback(async () => {
     if (legacyJobsInstalled.length > 0) {
       showUpgradeModal();
     } else {
       await handleCreatePrePackagedRules();
-      incrementRulesStep();
     }
-  }, [
-    handleCreatePrePackagedRules,
-    incrementRulesStep,
-    legacyJobsInstalled.length,
-    showUpgradeModal,
-  ]);
+  }, [handleCreatePrePackagedRules, legacyJobsInstalled.length, showUpgradeModal]);
 
   // Wrapper to add confirmation modal for users who may be running older ML Jobs that would
   // be overridden by updating their rules. For details, see: https://github.com/elastic/kibana/issues/128121
   const mlJobUpgradeModalConfirm = useCallback(async () => {
     hideUpgradeModal();
     await handleCreatePrePackagedRules();
-    incrementRulesStep();
-  }, [handleCreatePrePackagedRules, hideUpgradeModal, incrementRulesStep]);
+  }, [handleCreatePrePackagedRules, hideUpgradeModal]);
 
   const isDisabled = !canCreatePrePackagedRules || isFetchingPrepackagedStatus || loadingJobs;
 
