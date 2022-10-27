@@ -14,7 +14,6 @@ import { useCreatePrePackagedRules } from '../../../../detection_engine/rule_man
 import { usePrePackagedRulesStatus } from '../../../../detection_engine/rule_management/logic/use_pre_packaged_rules_status';
 import { affectedJobIds } from '../../callouts/ml_job_compatibility_callout/affected_job_ids';
 import { MlJobUpgradeModal } from '../../modals/ml_job_upgrade_modal';
-import { useRulesTour } from '../../../../common/components/guided_onboarding_tour/use_rules_tour';
 
 interface LoadPrePackagedRulesRenderProps {
   isLoading: boolean;
@@ -43,8 +42,6 @@ export const LoadPrePackagedRules = ({ children }: LoadPrePackagedRulesProps) =>
   const [isUpgradeModalVisible, showUpgradeModal, hideUpgradeModal] = useBoolState(false);
   const { loading: loadingJobs, jobs } = useInstalledSecurityJobs();
   const legacyJobsInstalled = jobs.filter((job) => affectedJobIds.includes(job.id));
-
-  useRulesTour();
 
   const handleInstallPrePackagedRules = useCallback(async () => {
     if (legacyJobsInstalled.length > 0) {
