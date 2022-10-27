@@ -17,7 +17,7 @@ const GUIDED_ONBOARDING_RULES_FILTER = {
   tags: ['Guided Onboarding'],
 };
 export const useRulesTour = () => {
-  const { isTourShown, endTourStep, incrementStep, activeStep } = useTourContext();
+  const { isTourShown, endTourStep, incrementStep, activeStep, setActiveStep } = useTourContext();
   const { data: onboardingRules } = useFindRulesQuery(
     { filterOptions: GUIDED_ONBOARDING_RULES_FILTER },
     { retry: false, enabled: isTourShown(SecurityStepId.rules) }
@@ -25,6 +25,10 @@ export const useRulesTour = () => {
 
   const manageRulesTour = useCallback(
     ({ rules }: RulesQueryResponse) => {
+      if (rules && rules.length === 0 && isTourShown(SecurityStepId.rules) && activeStep === 2) {
+        // reset to 1 if they are on step 2 but have no onboarding rules
+        setActiveStep(SecurityStepId.rules, 1);
+      }
       if (rules && rules.length > 0 && isTourShown(SecurityStepId.rules) && activeStep === 1) {
         // There are onboarding rules now, advance to step 2 if on step 1
         incrementStep(SecurityStepId.rules);
@@ -34,7 +38,7 @@ export const useRulesTour = () => {
         endTourStep(SecurityStepId.rules);
       }
     },
-    [activeStep, endTourStep, incrementStep, isTourShown]
+    [activeStep, endTourStep, incrementStep, isTourShown, setActiveStep]
   );
 
   useEffect(() => {
