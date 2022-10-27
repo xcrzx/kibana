@@ -12,6 +12,10 @@ import { SecurityStepId, securityTourConfig } from './tour_config';
 import { useKibana } from '../../lib/kibana';
 
 jest.mock('../../lib/kibana');
+jest.mock('../../hooks/use_experimental_features', () => ({
+  useIsExperimentalFeatureEnabled: () => true,
+}));
+
 jest.mock('react-router-dom', () => {
   const original = jest.requireActual('react-router-dom');
 
@@ -60,12 +64,15 @@ describe('useTourContext', () => {
       });
       expect(result.current.isTourShown(stepId)).toBe(true);
     });
-    it('endTourStep calls completeGuideStep with correct stepId', () => {
-      const { result } = renderHook(() => useTourContext(), {
-        wrapper: TourContextProvider,
+    it('endTourStep calls completeGuideStep with correct stepId', async () => {
+      await act(async () => {
+        const { result, waitForNextUpdate } = renderHook(() => useTourContext(), {
+          wrapper: TourContextProvider,
+        });
+        await waitForNextUpdate();
+        result.current.endTourStep(stepId);
+        expect(mockCompleteGuideStep).toHaveBeenCalledWith('security', stepId);
       });
-      result.current.endTourStep(stepId);
-      expect(mockCompleteGuideStep).toHaveBeenCalledWith('security', stepId);
     });
     it('activeStep is initially 1', () => {
       const { result } = renderHook(() => useTourContext(), {
