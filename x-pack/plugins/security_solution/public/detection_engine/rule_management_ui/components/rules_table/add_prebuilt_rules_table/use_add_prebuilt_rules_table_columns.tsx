@@ -8,7 +8,6 @@
 import type { EuiBasicTableColumn } from '@elastic/eui';
 import { EuiButtonEmpty, EuiBadge, EuiText, EuiLoadingSpinner } from '@elastic/eui';
 import React, { useMemo } from 'react';
-import type { usePerformInstallSpecificRules } from '../../../../rule_management/logic/prebuilt_rules/use_perform_rule_install';
 import { SHOW_RELATED_INTEGRATIONS_SETTING } from '../../../../../../common/constants';
 import { PopoverItems } from '../../../../../common/components/popover_items';
 import { useUiSetting$ } from '../../../../../common/lib/kibana';
@@ -17,32 +16,24 @@ import { SeverityBadge } from '../../../../../detections/components/rules/severi
 import * as i18n from '../../../../../detections/pages/detection_engine/rules/translations';
 import type { Rule } from '../../../../rule_management/logic';
 import type { RuleInstallationInfoForReview } from '../../../../../../common/detection_engine/prebuilt_rules/api/review_rule_installation/response_schema';
+import { useUserData } from '../../../../../detections/components/user_info';
+import { hasUserCRUDPermission } from '../../../../../common/utils/privileges';
+import { useAddPrebuiltRulesTableContext } from './add_prebuilt_rules_table_context';
 
 export type TableColumn = EuiBasicTableColumn<RuleInstallationInfoForReview>;
 
-interface ColumnsProps {
-  installSpecificRules: ReturnType<typeof usePerformInstallSpecificRules>['mutateAsync'];
-  hasCRUDPermissions: boolean;
-  isRuleInstalling: boolean;
-}
-
-const useRuleNameColumn = (): TableColumn => {
-  return useMemo(
-    () => ({
-      field: 'name',
-      name: i18n.COLUMN_RULE,
-      render: (value: RuleInstallationInfoForReview['name']) => (
-        <EuiText id={value} size="s">
-          {value}
-        </EuiText>
-      ),
-      sortable: true,
-      truncateText: true,
-      width: '40%',
-      align: 'left',
-    }),
-    []
-  );
+export const RULE_NAME_COLUMN: TableColumn = {
+  field: 'name',
+  name: i18n.COLUMN_RULE,
+  render: (value: RuleInstallationInfoForReview['name']) => (
+    <EuiText id={value} size="s">
+      {value}
+    </EuiText>
+  ),
+  sortable: true,
+  truncateText: true,
+  width: '40%',
+  align: 'left',
 };
 
 const TAGS_COLUMN: TableColumn = {
@@ -118,13 +109,15 @@ const createInstallButtonColumn = (
   align: 'center',
 });
 
-export const useAddPrebuiltRulesTableColumns = ({
-  installSpecificRules,
-  hasCRUDPermissions,
-  isRuleInstalling,
-}: ColumnsProps): TableColumn[] => {
-  const ruleNameColumn = useRuleNameColumn();
+export const useAddPrebuiltRulesTableColumns = (): TableColumn[] => {
+  const [{ canUserCRUD }] = useUserData();
+  const hasCRUDPermissions = hasUserCRUDPermission(canUserCRUD);
   const [showRelatedIntegrations] = useUiSetting$<boolean>(SHOW_RELATED_INTEGRATIONS_SETTING);
+  const {
+    state: { isInstallAllRulesLoading, isInstallSpecificRulesLoading },
+    actions: { installSpecificRules },
+  } = useAddPrebuiltRulesTableContext();
+  const isRuleInstalling = isInstallAllRulesLoading || isInstallSpecificRulesLoading;
 
   const installRowRule = useMemo(
     () =>
@@ -144,7 +137,7 @@ export const useAddPrebuiltRulesTableColumns = ({
 
   return useMemo(
     () => [
-      ruleNameColumn,
+      RULE_NAME_COLUMN,
       ...(showRelatedIntegrations ? [INTEGRATIONS_COLUMN] : []),
       TAGS_COLUMN,
       {
@@ -169,6 +162,6 @@ export const useAddPrebuiltRulesTableColumns = ({
       },
       ...(hasCRUDPermissions ? [createInstallButtonColumn(installRowRule, isRuleInstalling)] : []),
     ],
-    [hasCRUDPermissions, installRowRule, isRuleInstalling, ruleNameColumn, showRelatedIntegrations]
+    [hasCRUDPermissions, installRowRule, isRuleInstalling, showRelatedIntegrations]
   );
 };

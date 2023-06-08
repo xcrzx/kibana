@@ -5,35 +5,24 @@
  * 2.0.
  */
 
-// import { isEqual } from 'lodash';
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import type {
-  CriteriaWithPagination,
-  EuiSearchBarProps,
-  EuiTableSelectionType,
-} from '@elastic/eui';
-import { useUserData } from '../../../../../detections/components/user_info';
+import type { RuleInstallationInfoForReview } from '../../../../../../common/detection_engine/prebuilt_rules/api/review_rule_installation/response_schema';
+import { invariant } from '../../../../../../common/utils/invariant';
 import {
   usePerformInstallAllRules,
   usePerformInstallSpecificRules,
 } from '../../../../rule_management/logic/prebuilt_rules/use_perform_rule_install';
 import { usePrebuiltRulesInstallReview } from '../../../../rule_management/logic/prebuilt_rules/use_prebuilt_rules_install_review';
-import { invariant } from '../../../../../../common/utils/invariant';
-import type { InMemoryPaginationOptions } from '../../../../rule_management/logic';
-import { RULES_TABLE_INITIAL_PAGE_SIZE, RULES_TABLE_PAGE_SIZE_OPTIONS } from '../constants';
-import type { RuleInstallationInfoForReview } from '../../../../../../common/detection_engine/prebuilt_rules/api/review_rule_installation/response_schema';
-import { hasUserCRUDPermission } from '../../../../../common/utils/privileges';
-import type { TableColumn } from './use_add_prebuilt_rules_table_columns';
-import { useAddPrebuiltRulesTableColumns } from './use_add_prebuilt_rules_table_columns';
+
 export interface AddPrebuiltRulesTableState {
   /**
    * Rules available to be installed
    */
   rules: RuleInstallationInfoForReview[];
   /**
-   * Value of the currently selected table rows for InMemoryTable management
+   * All unique tags for all rules
    */
-  selectionValue: EuiTableSelectionType<RuleInstallationInfoForReview>;
+  tags: string[];
   /**
    * Is true then there is no cached data and the query is currently fetching.
    */
@@ -59,18 +48,6 @@ export interface AddPrebuiltRulesTableState {
    */
   lastUpdated: number;
   /**
-   * Currently selected page and number of rows per page
-   */
-  pagination: InMemoryPaginationOptions;
-  /**
-   * EuiSearchBarProps filters for InMemoryTable
-   */
-  filters: EuiSearchBarProps;
-  /**
-   * Columns for Add Rules Table
-   */
-  rulesColumns: TableColumn[];
-  /**
    * Rule rows selected in EUI InMemory Table
    */
   selectedRules: RuleInstallationInfoForReview[];
@@ -78,9 +55,9 @@ export interface AddPrebuiltRulesTableState {
 
 export interface AddPrebuiltRulesTableActions {
   reFetchRules: ReturnType<typeof usePrebuiltRulesInstallReview>['refetch'];
-  onTableChange: (criteria: CriteriaWithPagination<RuleInstallationInfoForReview>) => void;
   installAllRules: ReturnType<typeof usePerformInstallAllRules>['mutateAsync'];
   installSpecificRules: ReturnType<typeof usePerformInstallSpecificRules>['mutateAsync'];
+  selectRules: (rules: RuleInstallationInfoForReview[]) => void;
 }
 
 export interface AddPrebuiltRulesContextType {
@@ -97,23 +74,7 @@ interface AddPrebuiltRulesTableContextProviderProps {
 export const AddPrebuiltRulesTableContextProvider = ({
   children,
 }: AddPrebuiltRulesTableContextProviderProps) => {
-  const [pagination, setPagination] = useState<{ pageIndex: number }>({ pageIndex: 0 });
   const [selectedRules, setSelectedRules] = useState<RuleInstallationInfoForReview[]>([]);
-
-  const onTableChange = ({
-    page: { index },
-  }: CriteriaWithPagination<RuleInstallationInfoForReview>) => {
-    setPagination({ pageIndex: index });
-  };
-
-  const selectionValue: EuiTableSelectionType<RuleInstallationInfoForReview> = useMemo(
-    () => ({
-      selectable: () => true,
-      onSelectionChange: (newSelectedRules) => setSelectedRules(newSelectedRules),
-      initialSelected: [],
-    }),
-    []
-  );
 
   const {
     data: { rules, stats: { tags } } = {
@@ -135,64 +96,26 @@ export const AddPrebuiltRulesTableContextProvider = ({
   const { mutateAsync: installSpecificRules, isLoading: isInstallSpecificRulesLoading } =
     usePerformInstallSpecificRules();
 
-  const [{ canUserCRUD }] = useUserData();
-  const hasPermissions = hasUserCRUDPermission(canUserCRUD);
-  const rulesColumns = useAddPrebuiltRulesTableColumns({
-    installSpecificRules,
-    hasCRUDPermissions: hasPermissions,
-    isRuleInstalling: isInstallSpecificRulesLoading || isInstallAllRulesLoading,
-  });
-
   const actions = useMemo(
     () => ({
       reFetchRules: refetch,
-      onTableChange,
       installAllRules,
       installSpecificRules,
+      selectRules: setSelectedRules,
     }),
     [installAllRules, installSpecificRules, refetch]
   );
 
-  const filters: EuiSearchBarProps = useMemo(
-    () => ({
-      box: {
-        incremental: true,
-        isClearable: true,
-      },
-      filters: [
-        {
-          type: 'field_value_selection',
-          field: 'tags',
-          name: 'Tags',
-          multiSelect: true,
-          options: tags.map((tag) => ({
-            value: tag,
-            name: tag,
-            field: 'tags',
-          })),
-        },
-      ],
-    }),
-    [tags]
-  );
-
-  const providerValue = useMemo(() => {
+  const providerValue = useMemo<AddPrebuiltRulesContextType>(() => {
     return {
       state: {
         rules,
-        pagination: {
-          ...pagination,
-          initialPageSize: RULES_TABLE_INITIAL_PAGE_SIZE,
-          pageSizeOptions: RULES_TABLE_PAGE_SIZE_OPTIONS,
-        },
-        selectionValue,
-        filters,
+        tags,
         isFetched,
         isLoading,
         isInstallAllRulesLoading,
         isInstallSpecificRulesLoading,
         isRefetching,
-        rulesColumns,
         selectedRules,
         lastUpdated: dataUpdatedAt,
       },
@@ -200,15 +123,12 @@ export const AddPrebuiltRulesTableContextProvider = ({
     };
   }, [
     rules,
-    pagination,
-    selectionValue,
-    filters,
+    tags,
     isFetched,
     isLoading,
     isInstallAllRulesLoading,
     isInstallSpecificRulesLoading,
     isRefetching,
-    rulesColumns,
     selectedRules,
     dataUpdatedAt,
     actions,

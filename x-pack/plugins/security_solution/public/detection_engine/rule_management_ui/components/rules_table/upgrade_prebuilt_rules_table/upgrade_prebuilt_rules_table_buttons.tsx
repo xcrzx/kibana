@@ -44,7 +44,7 @@ export const UpgradePrebuiltRulesTableButtons = () => {
             disabled={isUpgradeSpecificRulesLoading || isRuleUpgrading}
           >
             <>
-              {i18n.UPGRADE_SELECTED_RULES(numberOfSelectedRules)}
+              {i18n.UPDATE_SELECTED_RULES(numberOfSelectedRules)}
               {isRuleUpgrading ? <EuiLoadingSpinner size="s" /> : undefined}
             </>
           </EuiButton>
@@ -57,7 +57,7 @@ export const UpgradePrebuiltRulesTableButtons = () => {
           onClick={upgradeRules}
           disabled={!isRulesAvailableForUpgrade || isRuleUpgrading}
         >
-          {i18n.UPGRADE_ALL}
+          {i18n.UPDATE_ALL}
           {isRuleUpgrading ? <EuiLoadingSpinner size="s" /> : undefined}
         </EuiButton>
       </EuiFlexItem>

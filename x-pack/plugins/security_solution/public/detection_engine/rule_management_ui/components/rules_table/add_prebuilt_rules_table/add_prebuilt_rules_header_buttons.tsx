@@ -46,6 +46,7 @@ export const AddPrebuiltRulesHeaderButtons = () => {
         <EuiButton
           fill
           iconType="plusInCircle"
+          data-test-subj="installAllRulesButton"
           onClick={installRules}
           disabled={!isRulesAvailableForInstall || isRuleInstalling}
         >

@@ -10,7 +10,9 @@ import React from 'react';
 
 import * as i18n from '../../../../../detections/pages/detection_engine/rules/translations';
 import { useIsUpgradingSecurityPackages } from '../../../../rule_management/logic/use_upgrade_security_packages';
+import { RULES_TABLE_INITIAL_PAGE_SIZE, RULES_TABLE_PAGE_SIZE_OPTIONS } from '../constants';
 import { useAddPrebuiltRulesTableContext } from './add_prebuilt_rules_table_context';
+import { useAddPrebuiltRulesTableColumns } from './use_add_prebuilt_rules_table_columns';
 
 const NO_ITEMS_MESSAGE = (
   <EuiEmptyPrompt
@@ -29,30 +31,15 @@ export const AddPrebuiltRulesTable = React.memo(() => {
   const addRulesTableContext = useAddPrebuiltRulesTableContext();
 
   const {
-    state: {
-      rules,
-      pagination,
-      selectionValue,
-      filters,
-      isFetched,
-      isLoading,
-      isRefetching,
-      rulesColumns,
-    },
-    actions: { onTableChange },
+    state: { rules, tags, isFetched, isLoading, isRefetching, selectedRules },
+    actions: { selectRules },
   } = addRulesTableContext;
+  const rulesColumns = useAddPrebuiltRulesTableColumns();
 
-  const isTableEmpty = rules.length === 0;
-
-  const tableProps = {
-    'data-test-subj': 'add-prebuilt-rules-table',
-    columns: rulesColumns,
-  };
+  const isTableEmpty = isFetched && rules.length === 0;
 
   const shouldShowLinearProgress = (isFetched && isRefetching) || isUpgradingSecurityPackages;
   const shouldShowLoadingOverlay = !isFetched && isRefetching;
-
-  const shouldShowRulesTable = isFetched && !isTableEmpty;
 
   return (
     <>
@@ -75,23 +62,46 @@ export const AddPrebuiltRulesTable = React.memo(() => {
           />
         }
         loadedContent={
-          <>
-            {shouldShowRulesTable ? (
-              <EuiInMemoryTable
-                items={rules}
-                sorting={true}
-                search={filters}
-                pagination={pagination}
-                isSelectable={true}
-                onTableChange={onTableChange}
-                selection={selectionValue}
-                itemId="rule_id"
-                {...tableProps}
-              />
-            ) : (
-              NO_ITEMS_MESSAGE
-            )}
-          </>
+          isTableEmpty ? (
+            NO_ITEMS_MESSAGE
+          ) : (
+            <EuiInMemoryTable
+              items={rules}
+              sorting
+              search={{
+                box: {
+                  incremental: true,
+                  isClearable: true,
+                },
+                filters: [
+                  {
+                    type: 'field_value_selection',
+                    field: 'tags',
+                    name: 'Tags',
+                    multiSelect: true,
+                    options: tags.map((tag) => ({
+                      value: tag,
+                      name: tag,
+                      field: 'tags',
+                    })),
+                  },
+                ],
+              }}
+              pagination={{
+                initialPageSize: RULES_TABLE_INITIAL_PAGE_SIZE,
+                pageSizeOptions: RULES_TABLE_PAGE_SIZE_OPTIONS,
+              }}
+              isSelectable
+              selection={{
+                selectable: () => true,
+                onSelectionChange: selectRules,
+                initialSelected: selectedRules,
+              }}
+              itemId="rule_id"
+              data-test-subj="add-prebuilt-rules-table"
+              columns={rulesColumns}
+            />
+          )
         }
       />
     </>
