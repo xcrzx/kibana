@@ -21,6 +21,7 @@ import { buildMlAuthz } from '../../../../machine_learning/authz';
 import { throwAuthzError } from '../../../../machine_learning/validation';
 import { createDetectionRulesClient } from './detection_rules_client';
 import type { IDetectionRulesClient } from './detection_rules_client_interface';
+import { savedObjectsClientMock } from '@kbn/core/server/mocks';
 
 jest.mock('../../../../machine_learning/authz');
 jest.mock('../../../../machine_learning/validation');
@@ -34,7 +35,8 @@ describe('DetectionRulesClient.upgradePrebuiltRule', () => {
 
   beforeEach(() => {
     rulesClient = rulesClientMock.create();
-    detectionRulesClient = createDetectionRulesClient(rulesClient, mlAuthz);
+    const savedObjectsClient = savedObjectsClientMock.create();
+    detectionRulesClient = createDetectionRulesClient({ rulesClient, mlAuthz, savedObjectsClient });
   });
 
   it('throws if no matching rule_id is found', async () => {
