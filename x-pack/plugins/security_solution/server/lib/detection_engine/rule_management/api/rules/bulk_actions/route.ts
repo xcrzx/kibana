@@ -9,6 +9,7 @@ import type { IKibanaResponse, Logger } from '@kbn/core/server';
 import { AbortError } from '@kbn/kibana-utils-plugin/common';
 import { transformError } from '@kbn/securitysolution-es-utils';
 import { buildRouteValidationWithZod } from '@kbn/zod-helpers';
+import type { BulkActionSkipResult } from '@kbn/alerting-plugin/common';
 import type { ConfigType } from '../../../../../../config';
 import type { PerformBulkActionResponse } from '../../../../../../../common/api/detection_engine/rule_management';
 import {
@@ -42,6 +43,7 @@ import { buildBulkResponse } from './bulk_actions_response';
 import { bulkEnableDisableRules } from './bulk_enable_disable_rules';
 import { fetchRulesByQueryOrIds } from './fetch_rules_by_query_or_ids';
 import { bulkScheduleBackfill } from './bulk_schedule_rule_run';
+import { createPrebuiltRuleAssetsClient } from '../../../../prebuilt_rules/logic/rule_assets/prebuilt_rule_assets_client';
 
 export const MAX_RULES_TO_PROCESS_TOTAL = 10000;
 const MAX_ROUTE_CONCURRENCY = 5;
@@ -122,6 +124,7 @@ export const performBulkActionRoute = (
           const savedObjectsClient = ctx.core.savedObjects.client;
           const actionsClient = ctx.actions.getActionsClient();
           const detectionRulesClient = ctx.securitySolution.getDetectionRulesClient();
+          const prebuiltRuleAssetClient = createPrebuiltRuleAssetsClient(savedObjectsClient);
 
           const { getExporter, getClient } = ctx.core.savedObjects;
           const client = getClient({ includedHiddenTypes: ['action'] });
@@ -137,26 +140,6 @@ export const performBulkActionRoute = (
 
           const query = body.query !== '' ? body.query : undefined;
 
-          // handling this action before switch statement as bulkEditRules fetch rules within
-          // rulesClient method, hence there is no need to use fetchRulesByQueryOrIds utility
-          if (body.action === BulkActionTypeEnum.edit && !isDryRun) {
-            const { rules, errors, skipped } = await bulkEditRules({
-              actionsClient,
-              rulesClient,
-              filter: query,
-              ids: body.ids,
-              actions: body.edit,
-              mlAuthz,
-              experimentalFeatures: config.experimentalFeatures,
-            });
-
-            return buildBulkResponse(response, {
-              updated: rules,
-              skipped,
-              errors,
-            });
-          }
-
           const fetchRulesOutcome = await fetchRulesByQueryOrIds({
             rulesClient,
             query,
@@ -169,6 +152,7 @@ export const performBulkActionRoute = (
           let updated: RuleAlertType[] = [];
           let created: RuleAlertType[] = [];
           let deleted: RuleAlertType[] = [];
+          let skipped: BulkActionSkipResult[] = [];
 
           switch (body.action) {
             case BulkActionTypeEnum.enable: {
@@ -303,25 +287,40 @@ export const performBulkActionRoute = (
             // will be processed only when isDryRun === true
             // during dry run only validation is getting performed and rule is not saved in ES
             case BulkActionTypeEnum.edit: {
-              const bulkActionOutcome = await initPromisePool({
-                concurrency: MAX_RULES_TO_UPDATE_IN_PARALLEL,
-                items: rules,
-                executor: async (rule) => {
-                  await dryRunValidateBulkEditRule({
-                    mlAuthz,
-                    rule,
-                    edit: body.edit,
-                    experimentalFeatures: config.experimentalFeatures,
-                  });
+              if (isDryRun) {
+                const bulkActionOutcome = await initPromisePool({
+                  concurrency: MAX_RULES_TO_UPDATE_IN_PARALLEL,
+                  items: rules,
+                  executor: async (rule) => {
+                    await dryRunValidateBulkEditRule({
+                      mlAuthz,
+                      rule,
+                      edit: body.edit,
+                      experimentalFeatures: config.experimentalFeatures,
+                    });
 
-                  return rule;
-                },
-                abortSignal: abortController.signal,
-              });
-              errors.push(...bulkActionOutcome.errors);
-              updated = bulkActionOutcome.results
-                .map(({ result }) => result)
-                .filter((rule): rule is RuleAlertType => rule !== null);
+                    return rule;
+                  },
+                  abortSignal: abortController.signal,
+                });
+                errors.push(...bulkActionOutcome.errors);
+                updated = bulkActionOutcome.results
+                  .map(({ result }) => result)
+                  .filter((rule): rule is RuleAlertType => rule !== null);
+              } else {
+                const bulkEditResult = await bulkEditRules({
+                  actionsClient,
+                  rulesClient,
+                  prebuiltRuleAssetClient,
+                  rules,
+                  actions: body.edit,
+                  mlAuthz,
+                  experimentalFeatures: config.experimentalFeatures,
+                });
+                updated = bulkEditResult.rules;
+                skipped = bulkEditResult.skipped;
+                errors.push(...bulkEditResult.errors);
+              }
               break;
             }
 
@@ -348,6 +347,7 @@ export const performBulkActionRoute = (
             updated,
             deleted,
             created,
+            skipped,
             errors,
             isDryRun,
           });

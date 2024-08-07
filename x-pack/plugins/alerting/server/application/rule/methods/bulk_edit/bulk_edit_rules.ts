@@ -16,7 +16,7 @@ import {
   SavedObjectsUpdateResponse,
 } from '@kbn/core/server';
 import { validateAndAuthorizeSystemActions } from '../../../../lib/validate_authorize_system_actions';
-import { RuleAction, RuleSystemAction } from '../../../../../common';
+import { Rule, RuleAction, RuleSystemAction } from '../../../../../common';
 import { RULE_SAVED_OBJECT_TYPE } from '../../../../saved_objects';
 import { BulkActionSkipResult } from '../../../../../common/bulk_edit';
 import { RuleTypeRegistry } from '../../../../types';
@@ -217,6 +217,7 @@ export async function bulkEditRules<Params extends RuleParams>(
         filter: filterKueryNode,
         operations: options.operations,
         paramsModifier: options.paramsModifier,
+        ruleModifier: options.ruleModifier,
         shouldIncrementRevision: options.shouldIncrementRevision,
       }),
     qNodeFilterWithAuth
@@ -270,11 +271,13 @@ async function bulkEditRulesOcc<Params extends RuleParams>(
     filter,
     operations,
     paramsModifier,
+    ruleModifier,
     shouldIncrementRevision,
   }: {
     filter: KueryNode | null;
     operations: BulkEditOperation[];
     paramsModifier?: ParamsModifier<Params>;
+    ruleModifier?: (rule: Rule<Params>) => Promise<Rule<Params>>;
     shouldIncrementRevision?: ShouldIncrementRevision<Params>;
   }
 ): Promise<{
@@ -317,6 +320,7 @@ async function bulkEditRulesOcc<Params extends RuleParams>(
           rule,
           operations,
           paramsModifier,
+          ruleModifier,
           apiKeysMap,
           rules,
           skipped,
@@ -428,6 +432,7 @@ async function updateRuleAttributesAndParamsInMemory<Params extends RuleParams>(
   rule,
   operations,
   paramsModifier,
+  ruleModifier,
   apiKeysMap,
   rules,
   skipped,
@@ -439,6 +444,7 @@ async function updateRuleAttributesAndParamsInMemory<Params extends RuleParams>(
   rule: SavedObjectsFindResult<RuleAttributes>;
   operations: BulkEditOperation[];
   paramsModifier?: ParamsModifier<Params>;
+  ruleModifier?: (rule: Rule<Params>) => Promise<Rule<Params>>;
   apiKeysMap: ApiKeysMap;
   rules: Array<SavedObjectsBulkUpdateObject<RuleAttributes>>;
   skipped: BulkActionSkipResult[];
@@ -490,7 +496,7 @@ async function updateRuleAttributesAndParamsInMemory<Params extends RuleParams>(
     );
 
     const {
-      rule: updatedRule,
+      rule: ruleWithUpdatedAttributes,
       ruleActions: updatedRuleActions,
       hasUpdateApiKeyOperation,
       isAttributesUpdateSkipped,
@@ -501,15 +507,32 @@ async function updateRuleAttributesAndParamsInMemory<Params extends RuleParams>(
       ruleActions,
       ruleType,
     });
+    let updatedRule = ruleWithUpdatedAttributes;
 
     validateScheduleInterval(context, updatedRule.schedule.interval, ruleType.id, rule.id);
 
-    const { modifiedParams: ruleParams, isParamsUpdateSkipped } = paramsModifier
+    const { modifiedParams, isParamsUpdateSkipped } = paramsModifier
       ? await paramsModifier(updatedRule.params)
       : {
           modifiedParams: updatedRule.params,
           isParamsUpdateSkipped: true,
         };
+
+    let ruleParams = modifiedParams;
+    updatedRule.params = ruleParams;
+
+    if (ruleModifier) {
+      const modifiedRule = await ruleModifier(updatedRule as Rule<Params>);
+      updatedRule = {
+        ...modifiedRule,
+        scheduledTaskId: updatedRule.scheduledTaskId,
+        monitoring: updatedRule.monitoring,
+        snoozeSchedule: updatedRule.snoozeSchedule,
+        alertDelay: updatedRule.alertDelay,
+      };
+      // Params can be modified by the ruleModifier
+      ruleParams = updatedRule.params;
+    }
 
     // Increment revision if params ended up being modified AND it wasn't already incremented as part of attribute update
     if (

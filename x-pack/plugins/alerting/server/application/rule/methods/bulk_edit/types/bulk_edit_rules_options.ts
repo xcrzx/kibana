@@ -12,7 +12,8 @@ import {
   bulkEditOperationsSchema,
   bulkEditOperationSchema,
 } from '../schemas';
-import { RuleParams, RuleDomain, Rule } from '../../../types';
+import { RuleParams, RuleDomain } from '../../../types';
+import { Rule } from '../../../../../../common';
 
 export type BulkEditRuleSnoozeSchedule = TypeOf<typeof bulkEditRuleSnoozeScheduleSchema>;
 export type BulkEditOperation = TypeOf<typeof bulkEditOperationSchema>;
@@ -37,6 +38,7 @@ export type BulkEditFields = keyof Pick<
 export interface BulkEditOptionsCommon<Params extends RuleParams> {
   operations: BulkEditOperation[];
   paramsModifier?: ParamsModifier<Params>;
+  ruleModifier?: (rule: Rule<Params>) => Promise<Rule<Params>>;
   shouldIncrementRevision?: ShouldIncrementRevision<Params>;
 }
 
