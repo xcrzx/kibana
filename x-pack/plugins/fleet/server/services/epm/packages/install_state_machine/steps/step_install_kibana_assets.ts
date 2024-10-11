@@ -12,6 +12,7 @@ import { withPackageSpan } from '../../utils';
 import type { InstallContext } from '../_state_machine_package_install';
 import { deleteKibanaAssets } from '../../remove';
 import { INSTALL_STATES } from '../../../../../../common/types';
+import { installPackageWithStream } from '../../stream_based_package_installation/install_package_with_stream';
 
 export async function stepInstallKibanaAssets(context: InstallContext) {
   const { savedObjectsClient, logger, installedPkg, packageInstallContext, spaceId } = context;
@@ -35,6 +36,23 @@ export async function stepInstallKibanaAssets(context: InstallContext) {
   kibanaAssetPromise.catch(() => {});
 
   return { kibanaAssetPromise };
+}
+
+export async function stepInstallKibanaAssetsWithStreaming(context: InstallContext) {
+  const { savedObjectsClient, installedPkg, packageInstallContext, spaceId } = context;
+
+  const installedKibanaAssetsRefs = await withPackageSpan(
+    'Install Kibana assets with streaming',
+    () =>
+      installPackageWithStream({
+        savedObjectsClient,
+        packageInstallContext,
+        installedPkg,
+        spaceId,
+      })
+  );
+
+  return { installedKibanaAssetsRefs };
 }
 
 export async function cleanUpKibanaAssetsStep(context: InstallContext) {

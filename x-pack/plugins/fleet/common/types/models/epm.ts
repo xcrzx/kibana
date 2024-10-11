@@ -124,10 +124,22 @@ export type InstallablePackage = RegistryPackage | ArchivePackage;
 
 export type AssetsMap = Map<string, Buffer | undefined>;
 
+export interface IArchiveIterator {
+  traverseEntries: (
+    callback: (entry: { path: string; buffer?: Buffer }) => Promise<void>
+  ) => Promise<void>;
+  getPaths: () => Promise<string[]>;
+}
+
 export interface PackageInstallContext {
   packageInfo: InstallablePackage;
+  /**
+   * @deprecated Use `archiveIterator` to access the package archive entries
+   * without loading them all into memory at once.
+   */
   assetsMap: AssetsMap;
   paths: string[];
+  archiveIterator: IArchiveIterator;
 }
 
 export type ArchivePackage = PackageSpecManifest &
