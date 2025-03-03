@@ -21,14 +21,13 @@ export const UpgradePrebuiltRulesTableButtons = ({
 }: UpgradePrebuiltRulesTableButtonsProps) => {
   const {
     state: {
-      ruleUpgradeInfos,
       hasRulesToUpgrade,
       loadingRules,
       isRefetching,
       isUpgradingSecurityPackages,
       isPrebuiltRulesCustomizationEnabled,
     },
-    actions: { upgradeRules },
+    actions: { upgradeRules, upgradeAllRules },
   } = useUpgradePrebuiltRulesTableContext();
   const [{ loading: isUserDataLoading, canUserCRUD }] = useUserData();
   const canUserEditRules = canUserCRUD && !isUserDataLoading;
@@ -38,27 +37,16 @@ export const UpgradePrebuiltRulesTableButtons = ({
 
   const isRuleUpgrading = loadingRules.length > 0;
   const isRequestInProgress = isRuleUpgrading || isRefetching || isUpgradingSecurityPackages;
-  const doAllSelectedRulesHaveConflicts =
-    isPrebuiltRulesCustomizationEnabled && isAllRuleHaveConflicts(selectedRules);
-  const doAllRulesHaveConflicts =
-    isPrebuiltRulesCustomizationEnabled && isAllRuleHaveConflicts(ruleUpgradeInfos);
 
   const { selectedRulesButtonTooltip, allRulesButtonTooltip } = useBulkUpdateButtonsTooltipContent({
     canUserEditRules,
-    doAllSelectedRulesHaveConflicts,
-    doAllRulesHaveConflicts,
+    doAllSelectedRulesHaveConflicts: false,
     isPrebuiltRulesCustomizationEnabled,
   });
 
   const upgradeSelectedRules = useCallback(
     () => upgradeRules(selectedRules.map((rule) => rule.rule_id)),
     [selectedRules, upgradeRules]
-  );
-
-  const upgradeAllRules = useCallback(
-    // Upgrade all rules, ignoring filter and selection
-    () => upgradeRules(ruleUpgradeInfos.map((rule) => rule.rule_id)),
-    [ruleUpgradeInfos, upgradeRules]
   );
 
   return (
@@ -68,7 +56,7 @@ export const UpgradePrebuiltRulesTableButtons = ({
           <EuiToolTip content={selectedRulesButtonTooltip}>
             <EuiButton
               onClick={upgradeSelectedRules}
-              disabled={!canUserEditRules || isRequestInProgress || doAllSelectedRulesHaveConflicts}
+              disabled={!canUserEditRules || isRequestInProgress}
               data-test-subj="upgradeSelectedRulesButton"
             >
               <>
@@ -85,12 +73,7 @@ export const UpgradePrebuiltRulesTableButtons = ({
             fill
             iconType="plusInCircle"
             onClick={upgradeAllRules}
-            disabled={
-              !canUserEditRules ||
-              !hasRulesToUpgrade ||
-              isRequestInProgress ||
-              doAllRulesHaveConflicts
-            }
+            disabled={!canUserEditRules || !hasRulesToUpgrade || isRequestInProgress}
             data-test-subj="upgradeAllRulesButton"
           >
             {i18n.UPDATE_ALL}
@@ -105,12 +88,10 @@ export const UpgradePrebuiltRulesTableButtons = ({
 const useBulkUpdateButtonsTooltipContent = ({
   canUserEditRules,
   doAllSelectedRulesHaveConflicts,
-  doAllRulesHaveConflicts,
   isPrebuiltRulesCustomizationEnabled,
 }: {
   canUserEditRules: boolean | null;
   doAllSelectedRulesHaveConflicts: boolean;
-  doAllRulesHaveConflicts: boolean;
   isPrebuiltRulesCustomizationEnabled: boolean;
 }) => {
   if (!canUserEditRules) {
@@ -127,13 +108,6 @@ const useBulkUpdateButtonsTooltipContent = ({
     };
   }
 
-  if (doAllRulesHaveConflicts) {
-    return {
-      selectedRulesButtonTooltip: i18n.BULK_UPDATE_SELECTED_RULES_BUTTON_TOOLTIP_CONFLICTS,
-      allRulesButtonTooltip: i18n.BULK_UPDATE_ALL_RULES_BUTTON_TOOLTIP_CONFLICTS,
-    };
-  }
-
   if (doAllSelectedRulesHaveConflicts) {
     return {
       selectedRulesButtonTooltip: i18n.BULK_UPDATE_SELECTED_RULES_BUTTON_TOOLTIP_CONFLICTS,
@@ -146,7 +120,3 @@ const useBulkUpdateButtonsTooltipContent = ({
     allRulesButtonTooltip: undefined,
   };
 };
-
-function isAllRuleHaveConflicts(rules: Array<{ diff: { num_fields_with_conflicts: number } }>) {
-  return rules.every((rule) => rule.diff.num_fields_with_conflicts > 0);
-}

@@ -4,24 +4,23 @@
  * 2.0; you may not use this file except in compliance with the Elastic License
  * 2.0.
  */
-import type { PickVersionValues } from '../../../../../common/api/detection_engine';
 import { useAppToasts } from '../../../../common/hooks/use_app_toasts';
-import { usePerformSpecificRulesUpgradeMutation } from '../../api/hooks/prebuilt_rules/use_perform_specific_rules_upgrade_mutation';
+import { usePerformRulesUpgradeMutation } from '../../api/hooks/prebuilt_rules/use_perform_rules_upgrade_mutation';
 
 import * as i18n from './translations';
 
-export const usePerformUpgradeSpecificRules = ({
-  pickVersion,
-}: {
-  pickVersion: PickVersionValues;
-}) => {
+export const usePerformUpgradeRules = () => {
   const { addError, addSuccess } = useAppToasts();
 
-  return usePerformSpecificRulesUpgradeMutation(pickVersion, {
+  return usePerformRulesUpgradeMutation({
     onError: (err) => {
       addError(err, { title: i18n.RULE_UPGRADE_FAILED });
     },
-    onSuccess: (result) => {
+    onSuccess: (result, vars) => {
+      if (vars.dry_run) {
+        // This is a preflight check, no need to show toast
+        return;
+      }
       addSuccess(getSuccessToastMessage(result));
     },
   });

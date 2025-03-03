@@ -11,6 +11,7 @@ import { RuleExecutionStatusEnum } from '../../api/detection_engine';
 import { prepareKQLStringParam } from '../../utils/kql';
 import {
   ENABLED_FIELD,
+  IS_CUSTOMIZED_FIELD,
   LAST_RUN_OUTCOME_FIELD,
   PARAMS_IMMUTABLE_FIELD,
   PARAMS_TYPE_FIELD,
@@ -23,6 +24,8 @@ export const KQL_FILTER_IMMUTABLE_RULES = `${PARAMS_IMMUTABLE_FIELD}: true`;
 export const KQL_FILTER_MUTABLE_RULES = `${PARAMS_IMMUTABLE_FIELD}: false`;
 export const KQL_FILTER_ENABLED_RULES = `${ENABLED_FIELD}: true`;
 export const KQL_FILTER_DISABLED_RULES = `${ENABLED_FIELD}: false`;
+export const KQL_FILTER_CUSTOMIZED_RULES = `${IS_CUSTOMIZED_FIELD}: true`;
+export const KQL_FILTER_NOT_CUSTOMIZED_RULES = `${IS_CUSTOMIZED_FIELD}: false`;
 
 interface RulesFilterOptions {
   filter: string;

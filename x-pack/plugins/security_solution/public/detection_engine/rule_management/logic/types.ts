@@ -25,6 +25,7 @@ import type {
   PatchRuleRequestBody,
 } from '../../../../common/api/detection_engine/rule_management';
 import { FindRulesSortField } from '../../../../common/api/detection_engine/rule_management';
+import type { RuleCustomizationStatus } from '../../../../common/api/detection_engine/prebuilt_rules/common/prebuilt_rules_filter';
 
 export interface CreateRulesProps {
   rule: RuleCreateProps;
@@ -99,7 +100,7 @@ export interface FilterOptions {
   excludeRuleTypes?: Type[];
   enabled?: boolean; // undefined is to display all the rules
   ruleExecutionStatus?: RuleExecutionStatus; // undefined means "all"
-  ruleSource?: RuleCustomizationEnum[]; // undefined is to display all the rules
+  ruleSource?: RuleCustomizationStatus[]; // undefined is to display all the rules
 }
 
 export interface FetchRulesResponse {
@@ -202,9 +203,4 @@ export interface FindRulesReferencedByExceptionsListProp {
 export interface FindRulesReferencedByExceptionsProps {
   lists: FindRulesReferencedByExceptionsListProp[];
   signal?: AbortSignal;
-}
-
-export enum RuleCustomizationEnum {
-  customized = 'CUSTOMIZED',
-  not_customized = 'NOT_CUSTOMIZED',
 }

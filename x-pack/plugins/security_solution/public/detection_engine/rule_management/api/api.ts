@@ -15,14 +15,14 @@ import type { ActionType, AsApiContract } from '@kbn/actions-plugin/common';
 import type { ActionResult } from '@kbn/actions-plugin/server';
 import { convertRulesFilterToKQL } from '../../../../common/detection_engine/rule_management/rule_filtering';
 import type {
-  UpgradeSpecificRulesRequest,
-  PickVersionValues,
   PerformRuleUpgradeResponseBody,
   InstallSpecificRulesRequest,
   PerformRuleInstallationResponseBody,
   GetPrebuiltRulesStatusResponseBody,
   ReviewRuleUpgradeResponseBody,
   ReviewRuleInstallationResponseBody,
+  ReviewRuleUpgradeRequestBody,
+  PerformRuleUpgradeRequestBody,
 } from '../../../../common/api/detection_engine/prebuilt_rules';
 import type {
   BulkDuplicateRules,
@@ -631,13 +631,16 @@ export const getPrebuiltRulesStatus = async ({
  */
 export const reviewRuleUpgrade = async ({
   signal,
+  request,
 }: {
   signal: AbortSignal | undefined;
+  request: ReviewRuleUpgradeRequestBody;
 }): Promise<ReviewRuleUpgradeResponseBody> =>
   KibanaServices.get().http.fetch(REVIEW_RULE_UPGRADE_URL, {
     method: 'POST',
     version: '1',
     signal,
+    body: JSON.stringify(request),
   });
 
 /**
@@ -679,18 +682,13 @@ export const performInstallSpecificRules = async (
     }),
   });
 
-export const performUpgradeSpecificRules = async (
-  rules: UpgradeSpecificRulesRequest['rules'],
-  pickVersion: PickVersionValues
+export const performUpgradeRules = async (
+  body: PerformRuleUpgradeRequestBody
 ): Promise<PerformRuleUpgradeResponseBody> =>
   KibanaServices.get().http.fetch(PERFORM_RULE_UPGRADE_URL, {
     method: 'POST',
     version: '1',
-    body: JSON.stringify({
-      mode: 'SPECIFIC_RULES',
-      rules,
-      pick_version: pickVersion,
-    }),
+    body: JSON.stringify(body),
   });
 
 export const bootstrapPrebuiltRules = async (): Promise<BootstrapPrebuiltRulesResponse> =>
