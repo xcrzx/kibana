@@ -6,6 +6,7 @@
  */
 
 import type {
+  RuleResponse,
   RuleSource,
   ValidatedRuleToImport,
 } from '../../../../../../common/api/detection_engine';
@@ -26,25 +27,28 @@ import { convertRuleToImportToRuleResponse } from './converters/convert_rule_to_
  * @returns The calculated rule_source and immutable fields for the rule
  */
 export const calculateRuleSourceForImport = ({
-  rule,
+  importedRule,
+  currentRule,
   prebuiltRuleAssetsByRuleId,
   isKnownPrebuiltRule,
   ruleCustomizationStatus,
 }: {
-  rule: ValidatedRuleToImport;
+  importedRule: ValidatedRuleToImport;
+  currentRule: RuleResponse | undefined;
   prebuiltRuleAssetsByRuleId: Record<string, PrebuiltRuleAsset>;
   isKnownPrebuiltRule: boolean;
   ruleCustomizationStatus: PrebuiltRulesCustomizationStatus;
 }): { ruleSource: RuleSource; immutable: boolean } => {
-  const assetWithMatchingVersion = prebuiltRuleAssetsByRuleId[rule.rule_id];
+  const baseRule = prebuiltRuleAssetsByRuleId[importedRule.rule_id];
   // We convert here so that RuleSource calculation can
   // continue to deal only with RuleResponses. The fields missing from the
   // incoming rule are not actually needed for the calculation, but only to
   // satisfy the type system.
-  const ruleResponseForImport = convertRuleToImportToRuleResponse(rule);
+  const ruleResponseForImport = convertRuleToImportToRuleResponse(importedRule);
   const ruleSource = calculateRuleSourceFromAsset({
-    rule: ruleResponseForImport,
-    assetWithMatchingVersion,
+    nextRule: ruleResponseForImport,
+    baseRule,
+    currentRule,
     isKnownPrebuiltRule,
     ruleCustomizationStatus,
   });

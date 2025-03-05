@@ -17,7 +17,7 @@ const ruleCustomizationStatus: PrebuiltRulesCustomizationStatus = {
 describe('calculateRuleSourceForImport', () => {
   it('calculates as internal if no asset is found', () => {
     const result = calculateRuleSourceForImport({
-      rule: getRulesSchemaMock(),
+      importedRule: getRulesSchemaMock(),
       prebuiltRuleAssetsByRuleId: {},
       isKnownPrebuiltRule: false,
       ruleCustomizationStatus,
@@ -36,7 +36,7 @@ describe('calculateRuleSourceForImport', () => {
     rule.rule_id = 'rule_id';
 
     const result = calculateRuleSourceForImport({
-      rule,
+      importedRule: rule,
       prebuiltRuleAssetsByRuleId: {},
       isKnownPrebuiltRule: true,
       ruleCustomizationStatus,
@@ -57,7 +57,7 @@ describe('calculateRuleSourceForImport', () => {
     const prebuiltRuleAssetsByRuleId = { rule_id: getPrebuiltRuleMock({ rule_id: 'rule_id' }) };
 
     const result = calculateRuleSourceForImport({
-      rule,
+      importedRule: rule,
       prebuiltRuleAssetsByRuleId,
       isKnownPrebuiltRule: true,
       ruleCustomizationStatus,
@@ -78,7 +78,7 @@ describe('calculateRuleSourceForImport', () => {
     const prebuiltRuleAssetsByRuleId = { rule_id: getPrebuiltRuleMock(rule) };
 
     const result = calculateRuleSourceForImport({
-      rule,
+      importedRule: rule,
       prebuiltRuleAssetsByRuleId,
       isKnownPrebuiltRule: true,
       ruleCustomizationStatus,

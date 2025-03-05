@@ -48,7 +48,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus,
     });
     expect(result).toEqual({
@@ -65,7 +65,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus,
     });
     expect(result).toEqual(
@@ -86,7 +86,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus,
     });
     expect(result).toEqual(
@@ -109,7 +109,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus,
     });
     expect(result).toEqual(
@@ -130,7 +130,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus: {
         isRulesCustomizationEnabled: false,
         customizationDisabledReason: PrebuiltRulesCustomizationDisabledReason.FeatureFlag,
@@ -154,7 +154,7 @@ describe('calculateRuleSource', () => {
 
     const result = await calculateRuleSource({
       prebuiltRuleAssetClient,
-      rule,
+      nextRule: rule,
       ruleCustomizationStatus: {
         isRulesCustomizationEnabled: false,
         customizationDisabledReason: PrebuiltRulesCustomizationDisabledReason.License,

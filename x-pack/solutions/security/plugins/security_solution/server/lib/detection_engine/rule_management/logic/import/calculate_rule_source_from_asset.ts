@@ -15,20 +15,22 @@ import { calculateIsCustomized } from '../detection_rules_client/mergers/rule_so
  * 1. The prebuilt rule asset that matches the specified rule_id and version
  * 2. Whether a prebuilt rule with the specified rule_id is currently installed
  *
- * @param rule The rule for which rule_source is being calculated
- * @param assetWithMatchingVersion The prebuilt rule asset that matches the specified rule_id and version
+ * @param nextRule The rule for which rule_source is being calculated
+ * @param baseRule The prebuilt rule asset that matches the specified rule_id and version
  * @param isKnownPrebuiltRule Whether a prebuilt rule with the specified rule_id is currently installed
  *
  * @returns The calculated rule_source
  */
 export const calculateRuleSourceFromAsset = ({
-  rule,
-  assetWithMatchingVersion,
+  nextRule,
+  baseRule,
+  currentRule,
   isKnownPrebuiltRule,
   ruleCustomizationStatus,
 }: {
-  rule: RuleResponse;
-  assetWithMatchingVersion: PrebuiltRuleAsset | undefined;
+  nextRule: RuleResponse;
+  baseRule: PrebuiltRuleAsset | undefined;
+  currentRule: RuleResponse | undefined;
   isKnownPrebuiltRule: boolean;
   ruleCustomizationStatus: PrebuiltRulesCustomizationStatus;
 }): RuleSource => {
@@ -38,16 +40,10 @@ export const calculateRuleSourceFromAsset = ({
     };
   }
 
-  if (assetWithMatchingVersion == null) {
-    return {
-      type: 'external',
-      is_customized: ruleCustomizationStatus.isRulesCustomizationEnabled ? true : false,
-    };
-  }
-
   const isCustomized = calculateIsCustomized({
-    baseRule: assetWithMatchingVersion,
-    nextRule: rule,
+    baseRule,
+    nextRule,
+    currentRule,
     ruleCustomizationStatus,
   });
 
