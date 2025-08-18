@@ -49,7 +49,7 @@ export const UserPrivilegesProvider = ({
   const read: boolean = kibanaCapabilities[SECURITY_FEATURE_ID].show === true;
 
   const listPrivileges = useFetchListPrivileges(read);
-  const detectionEnginePrivileges = useFetchDetectionEnginePrivileges(read);
+  const detectionEnginePrivileges = useFetchDetectionEnginePrivileges();
   const endpointPrivileges = useEndpointPrivileges();
 
   const kibanaSecuritySolutionsPrivileges = useMemo(
